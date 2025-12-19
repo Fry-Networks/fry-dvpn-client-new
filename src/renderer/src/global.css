@@ -1,0 +1,328 @@
+:root {
+  --primary: #ffffff;
+  --secondary: #000;
+}
+
+@font-face {
+  font-family: 'FutoSans-Bold';
+  src: url('./assets/fonts/FutoSans-Bold.ttf');
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-weight: normal;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Thin gray scrollbar without dark background */
+::-webkit-scrollbar {
+  width: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgb(197, 197, 197);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: darkgray;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+body {
+  background-color: var(--primary);
+  color: var(--secondary);
+}
+
+/* Ensure proper SVG rendering */
+img[src$=".svg"] {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+
+/* Prevent SVG artifacts and ensure clean rendering */
+svg {
+  shape-rendering: geometricPrecision;
+  text-rendering: geometricPrecision;
+}
+
+
+.ant-table {
+  border-radius: 15px !important;
+  overflow: hidden;
+  box-shadow: 0px 0px 12px 0px rgba(0, 0, 0, 0.16);
+  /* padding: 24px !important; */
+}
+
+:where(.css-dev-only-do-not-override-142vneq).ant-table-wrapper .ant-table {
+  background: transparent !important;
+}
+
+.ant-table-container {
+  overflow-y: hidden;
+}
+
+.ant-table-wrapper .ant-table-container table {
+  overflow-y: auto;
+  text-wrap: nowrap;
+}
+
+/* Table Header */
+.ant-table-wrapper .ant-table-thead>tr>th {
+  background-color: #ff000015;
+  color: #ff0000;
+  font-size: 16px;
+  font-family: 'FutoSans-Medium', 'sans-serif' !important;
+}
+
+/* Table Header */
+.ant-table-wrapper .ant-table-thead .ant-table-cell {
+  font-size: 16px !important;
+  font-family: 'FutoSans-Bold', 'sans-serif' !important;
+}
+
+.ant-table-wrapper .ant-table-thead>tr>th::before {
+  content: none !important;
+}
+
+.ant-table-wrapper .ant-table-container table>thead>tr:first-child>*:first-child {
+  border-top-left-radius: 15px;
+  border-bottom-left-radius: 15px;
+  border: none !important;
+}
+
+.ant-table-wrapper .ant-table-container table>thead>tr:last-child>*:last-child {
+  border-top-right-radius: 15px;
+  border-bottom-right-radius: 15px;
+  border: none !important;
+}
+
+.ant-table-wrapper .ant-table-container table>thead>tr>th{
+  border: none !important;
+}
+/* Body */
+.ant-table-wrapper .ant-table-tbody>tr>td {
+  margin-left: 20px !important;
+}
+
+.ant-table-wrapper .ant-table-tbody>tr:nth-child(even)>td {
+  background-color: rgba(255, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.ant-table-wrapper .ant-table-tbody .ant-table-cell p {
+  font-size: 12px !important;
+  font-family: 'Open Sans', 'sans-serif' !important;
+  font-weight: 600 !important;
+}
+
+:where(.css-dev-only-do-not-override-142vneq).ant-table-wrapper .ant-table-tbody>tr:nth-child(even)>td,
+:where(.css-dev-only-do-not-override-142vneq).ant-table-wrapper tfoot>tr:nth-child(even)>td {
+  padding: 10px 15px !important;
+}
+
+.ant-table-wrapper .ant-table-tbody>tr>th,
+.ant-table-wrapper .ant-table-tbody>tr>td {
+  border-bottom: none !important;
+}
+
+/* width */
+.ant-table-content::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+.ant-table-content::-webkit-scrollbar-track {
+  background: #ff000015;
+}
+
+.ant-table-placeholder {
+  display: none;
+}
+
+.ant-table {
+  box-shadow: none !important;
+}
+
+input[type='date']::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
+input[type='date']::-moz-calendar-picker-indicator {
+  display: none;
+}
+
+input[type='date']::-ms-clear {
+  display: none;
+}
+
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  display: none;
+}
+
+:where(.css-dev-only-do-not-override-142vneq).ant-picker-outlined:focus,
+:where(.css-dev-only-do-not-override-142vneq).ant-picker-outlined:focus-within {
+  border: none !important;
+  border-color: transparent !important;
+  box-shadow: none;
+  background-color: transparent !important;
+}
+
+:where(.css-dev-only-do-not-override-142vneq).ant-picker-outlined:hover {
+  border-color: transparent;
+  border: none !important;
+  background-color: transparent !important;
+}
+
+:where(.css-dev-only-do-not-override-142vneq).ant-picker-outlined {
+  border: none;
+}
+
+.backdrop {
+  /* background-color: rgba(255, 255, 255, 0.1); */
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+}
+
+:where(.css-dev-only-do-not-override-142vneq).ant-checkbox .ant-checkbox-inner {
+  border-color: rgba(255, 0, 0, 0.1) !important;
+}
+
+:where(.css-dev-only-do-not-override-142vneq).ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #ff0000 !important;
+}
+
+
+
+
+/* Switches */
+.ant-switch.ant-switch-checked:hover {
+  background-color: #ffffff30 !important;
+}
+
+:where(.css-dev-only-do-not-override-142vneq).ant-switch .ant-switch-handle {
+  top: 1px !important
+}
+
+:where(.css-dev-only-do-not-override-142vneq).ant-switch .ant-switch-handle::before {
+  background: #ff000050 !important;
+}
+
+:where(.css-dev-only-do-not-override-142vneq).ant-switch.ant-switch-checked .ant-switch-handle::before {
+  background: #ff0000 !important;
+
+}
+
+:where(.css-dev-only-do-not-override-142vneq).ant-switch {
+  background: #ffffff30 !important;
+  border: 1px solid #ff000050 !important;
+}
+
+:where(.css-dev-only-do-not-override-142vneq).ant-switch.ant-switch-checked {
+  background: #ffffff30 !important;
+  border: 1px solid #ff0000 !important;
+}
+
+.dark-checkbox .ant-checkbox-inner{
+  background-color: transparent;
+  border: 1px solid rgba(240, 240, 240, 0.3) !important;
+}
+
+:where(.css-dev-only-do-not-override-142vneq).ant-checkbox .ant-checkbox-inner:after{
+  margin: -1px !important;
+}
+
+/* Dark mode table styles */
+.dark-table .ant-table {
+  background-color: #1f1f1f !important;
+  color: white !important;
+}
+
+.dark-table .ant-table-thead > tr > th {
+  background-color: #2d2d2d !important;
+  color: white !important;
+  border-bottom: 1px solid #404040 !important;
+}
+
+.dark-table .ant-table-tbody > tr > td {
+  background-color: #1f1f1f !important;
+  color: white !important;
+  border-bottom: 1px solid #404040 !important;
+}
+
+.dark-table .ant-table-tbody > tr:nth-child(even) > td {
+  background-color: #2a2a2a !important;
+  color: white !important;
+}
+
+.dark-table .ant-table-tbody > tr:hover > td {
+  background-color: #333333 !important;
+  color: white !important;
+}
+
+.dark-table .ant-table-container {
+  background-color: #1f1f1f !important;
+}
+
+.dark-table .ant-table-content {
+  background-color: #1f1f1f !important;
+}
+
+.dark-table .ant-table-placeholder {
+  background-color: #1f1f1f !important;
+  color: white !important;
+}
+
+/* Light mode table styles */
+.light-table-row {
+  color: black !important;
+}
+
+.light-table-row:hover {
+  background-color: rgba(255, 0, 0, 0.05) !important;
+}
+
+/* Dark mode table row styles */
+.dark-table-row {
+  color: white !important;
+}
+
+.dark-table-row:hover {
+  background-color: #333333 !important;
+}
+
+/* Hide Program Status and Your Stake sections */
+[data-testid*="program-status"],
+[data-testid*="your-stake"],
+[id*="program-status"],
+[id*="your-stake"],
+[class*="program-status"],
+[class*="your-stake"] {
+  display: none !important;
+}
+
+/* Hide elements containing specific text */
+*:contains("Program Status"),
+*:contains("Your Stake") {
+  display: none !important;
+}
+
+/* Alternative approach for text content */
+div:has(> *:contains("Program Status")),
+div:has(> *:contains("Your Stake")),
+section:has(> *:contains("Program Status")),
+section:has(> *:contains("Your Stake")) {
+  display: none !important;
+}

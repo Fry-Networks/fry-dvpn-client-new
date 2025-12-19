@@ -1,0 +1,71 @@
+appId: com.dvpn.dvpn-client
+productName: Fry dVPN
+directories:
+  buildResources: build
+  output: dist-electron
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
+  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+  - 'out/**/*'
+  - 'src/main/bbb.conf'
+  - 'src/wg-bin/**/*'
+  - 'src/wg-configs/**/*'
+asarUnpack:
+  - resources/**
+  - 'src/main/bbb.conf'
+  - 'src/wg-bin/**/*'
+extraResources:
+  - from: src/wg-bin
+    to: wg-bin
+    filter: ['**/*']
+  - from: src/wg-configs
+    to: wg-configs
+    filter: ['**/*']
+win:
+  executableName: dvpn
+  icon: resources/icon.ico
+  target:
+    - target: nsis
+      arch:
+        - x64
+nsis:
+  artifactName: Fry dVPN Setup.${ext}
+  shortcutName: Fry dVPN
+  uninstallDisplayName: Fry dVPN
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  oneClick: false
+  perMachine: true
+  allowToChangeInstallationDirectory: true
+  runAfterFinish: false
+  include: build/installer.nsh
+  installerIcon: resources/icon.ico
+  uninstallerIcon: resources/icon.ico
+mac:
+  entitlementsInherit: build/entitlements.mac.plist
+  extendInfo:
+    - NSCameraUsageDescription: Application requests access to the device's camera.
+    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
+    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
+    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+  notarize: false
+dmg:
+  artifactName: Fry dVPN.${ext}
+linux:
+  target:
+    - AppImage
+    - snap
+    - deb
+  maintainer: dvpn.com
+  category: Network
+appImage:
+  artifactName: Fry dVPN.${ext}
+npmRebuild: false
+publish:
+  provider: generic
+  url: https://example.com/auto-updates
+electronDownload:
+  mirror: https://npmmirror.com/mirrors/electron/

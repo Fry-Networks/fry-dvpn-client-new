@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "strict": true,
+    "jsx": "react",
+    "moduleResolution": "node",
+    "baseUrl": "./src"
+  },
+  "include": [
+    "src",
+    "src/electron.d.ts"
+, "src/main/client.js", "src/main/miner.js"  ]
+}
