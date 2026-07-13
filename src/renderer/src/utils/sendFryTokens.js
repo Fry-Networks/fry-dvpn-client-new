@@ -1,10 +1,11 @@
 import * as algokit from '@algorandfoundation/algokit-utils'
 import { getAlgodConfigFromViteEnvironment } from '../config/getAlgoClientConfigs'
 
-// const FEE_WALLET = 'F3RFSU3VN2HXTIVNXUJ2MQUIVMQNMR33QWDQ5D26TSXZD43FA3DGJJSZJM'
-// const FEE_WALLET = '7KSPCJUIGA46TZ7NCOPERMGL6GPOVYWRGZEJRUNWRWPZUNNM3OXAB5AZBY'
-const FEE_WALLET = 'E2F2LT2INE75DBOYHQXTCTOP2PAP5MHAXQRXTTCCXFKHQTVG36DJONBQZE'
-const FRY_TOKEN_ID = 2485314946n
+// DEPRECATED: This function uses the old centralized fee model. For decentralized dVPN, use fryVpnFee.js
+// and payNodeForSession() to pay nodes directly.
+// FEE_WALLET is now configurable via environment or should be removed in favor of node-based payments
+const FEE_WALLET = process.env.VITE_FEE_WALLET || null
+const FRY_TOKEN_ID = 2485198745n
 const PERIODIC_AMOUNT = 0.000005 // 0.000005 FRY tokens per transfer
 
 // Send periodic FRY tokens to fee wallet

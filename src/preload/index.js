@@ -18,11 +18,11 @@ try {
     connect: (data) => ipcRenderer.invoke('connect-wg', data),
     disconnect: () => ipcRenderer.invoke('disconnect-wg'),
     getStatus: () => ipcRenderer.invoke('get-wg-status'),
+    getStats: () => ipcRenderer.invoke('get-wg-stats'),
     transferFry: (data) => ipcRenderer.invoke('transfer-fry', data),
     transferFryPera: (data) => ipcRenderer.invoke('transfer-fry-pera', data),
     createWallet: () => ipcRenderer.invoke('create-wallet'),
     getFryBalance: (data) => ipcRenderer.invoke('get-fry-balance', data),
-    sendTestFry: (data) => ipcRenderer.invoke('send-test-fry', data),
     optInFry: (data) => ipcRenderer.invoke('opt-in-fry', data)
   });
   console.log('✅ wgAPI exposed successfully');

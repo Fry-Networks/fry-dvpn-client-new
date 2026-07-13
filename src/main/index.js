@@ -89,7 +89,7 @@ function createWindow() {
       contextIsolation: true,
       enableRemoteModule: false,
       devTools: is.dev,
-      webSecurity: false
+      webSecurity: true
     }
   });
 
@@ -270,31 +270,41 @@ function isRunningAsAdmin() {
 ipcMain.handle('connect-wg', async (event, data) => {
   console.log('connect-wg handler called');
   console.log('Connection data:', data);
-  
+
   try {
-    // Get wallet address from the request data
-    const walletAddress = data?.walletAddress || 'unknown-wallet';
-    console.log('Using wallet address for peer:', walletAddress);
-    
-    // 1. Create peer and get config in response using wallet address
-    const { data: peer } = await axios.post('http://54.211.138.164:8000/create-peer', { 
-      wallet_address: walletAddress 
-    });
-    
-    console.log('Peer created successfully:', peer);
-    
-    // 2. Save conf to temp file
+    // Expect node config from renderer (node selection already done)
+    const nodeConfig = data?.nodeConfig;
+    if (!nodeConfig) {
+      throw new Error('No node configuration provided');
+    }
+
+    console.log('🔗 Connecting to node:', nodeConfig.address);
+
+    // The renderer should have already:
+    // 1. Selected a node
+    // 2. Paid the node via /session POST
+    // 3. Received peer config and session details
+    // And passed all that here in data
+
+    const { sessionConfig } = data;
+    if (!sessionConfig || !sessionConfig.wg_config) {
+      throw new Error('No WireGuard configuration received from node');
+    }
+
+    console.log('📋 Session ID:', sessionConfig.session_id);
+    console.log('🔐 Interface:', sessionConfig.interface_address);
+
+    // Save WireGuard config to temp file
     const tempConfigPath = require('path').join(app.getPath('temp'), 'wireguard.conf');
-    fs.writeFileSync(tempConfigPath, peer.conf);
-    console.log('Config saved to:', tempConfigPath);
-    
-    // 3. Start WireGuard
+    fs.writeFileSync(tempConfigPath, sessionConfig.wg_config);
+    console.log('✅ Config saved to:', tempConfigPath);
+
+    // Start WireGuard tunnel
     return new Promise((resolve, reject) => {
       execFile(wgPath, ['/installtunnelservice', tempConfigPath], (err, stdout, stderr) => {
         if (err) {
-          console.error('WireGuard service start failed:', stderr || err.message);
-          
-          // Check for specific permission errors
+          console.error('❌ WireGuard service start failed:', stderr || err.message);
+
           const errorMessage = stderr || err.message;
           if (errorMessage.includes('Access is denied') || errorMessage.includes('access denied')) {
             const permissionError = new Error(
@@ -307,24 +317,22 @@ ipcMain.handle('connect-wg', async (event, data) => {
             );
             return reject(permissionError);
           }
-          
-          // Check for "tunnel already installed" error
+
           if (errorMessage.includes('Tunnel already installed') || errorMessage.includes('already running')) {
             const tunnelError = new Error(
-              'A WireGuard tunnel is already running. Please disconnect first and try again.\n\n' +
-              'The application will attempt to disconnect the existing tunnel automatically.'
+              'A WireGuard tunnel is already running. Please disconnect first and try again.'
             );
             return reject(tunnelError);
           }
-          
+
           return reject(new Error(stderr || err.message));
         }
-        console.log('WireGuard connected:', stdout);
+        console.log('✅ WireGuard connected:', stdout);
         resolve('Tunnel connected successfully.');
       });
     });
   } catch (err) {
-    console.error('Connection error:', err);
+    console.error('❌ Connection error:', err);
     return Promise.reject("Failed to connect: " + err.message);
   }
 });
@@ -910,13 +918,18 @@ ipcMain.handle('create-wallet', async () => {
 });
 
 // FRY token transfer handler for Pera wallet
+// DEPRECATED: For decentralized dVPN, use fryVpnFee.js and payNodeForSession() instead
 ipcMain.handle('transfer-fry-pera', async (event, data) => {
   console.log('transfer-fry-pera handler called');
-  
+
   try {
-    const FRY_TOKEN_ID = 2485314946; // FRY token ID as number
-    const RECIPIENT_WALLET = 'F3RFSU3VN2HXTIVNXUJ2MQUIVMQNMR33QWDQ5D26TSXZD43FA3DGJJSZJM';
-    const TRANSFER_AMOUNT = 1; // 1 FRY token as number
+    const FRY_TOKEN_ID = 2485198745; // fVPN token ID
+    const RECIPIENT_WALLET = data?.recipientAddress || process.env.VITE_FEE_WALLET || null;
+    const TRANSFER_AMOUNT = data?.amount || 1; // Use provided amount or default to 1
+
+    if (!RECIPIENT_WALLET) {
+      return { success: false, message: 'No recipient address provided or configured' };
+    }
     
     console.log('Starting FRY transfer with Pera wallet...');
     console.log('Token ID:', FRY_TOKEN_ID);
@@ -991,17 +1004,19 @@ ipcMain.handle('transfer-fry-pera', async (event, data) => {
 });
 
 // FRY token transfer handler
+// DEPRECATED: For decentralized dVPN, use fryVpnFee.js and payNodeForSession() instead
 ipcMain.handle('transfer-fry', async (event, data) => {
-  console.log('=== TRANSFER-FRY HANDLER CALLED ===');
-  console.log('🔥🔥🔥 NEW VERSION - FORCE TRANSFER 🔥🔥🔥');
   console.log('transfer-fry handler called');
   console.log('Data received:', data);
-  console.log('Seed phrase length:', data.seedPhrase ? data.seedPhrase.split(' ').length : 'undefined');
-  
+
   try {
-    const FRY_TOKEN_ID = 2485314946; // FRY token ID as number
-    const RECIPIENT_WALLET = 'E2F2LT2INE75DBOYHQXTCTOP2PAP5MHAXQRXTTCCXFKHQTVG36DJONBQZE';
-    const TRANSFER_AMOUNT = 1; // 1 FRY token as number
+    const FRY_TOKEN_ID = 2485198745; // fVPN token ID
+    const RECIPIENT_WALLET = data?.recipientAddress || process.env.VITE_FEE_WALLET || null;
+    const TRANSFER_AMOUNT = data?.amount || 1; // Use provided amount or default to 1
+
+    if (!RECIPIENT_WALLET) {
+      return { success: false, message: 'No recipient address provided or configured' };
+    }
     
     console.log('Starting FRY transfer...');
     console.log('Token ID:', FRY_TOKEN_ID);
@@ -1137,9 +1152,9 @@ ipcMain.handle('transfer-fry', async (event, data) => {
 // Get FRY token balance handler
 ipcMain.handle('get-fry-balance', async (event, data) => {
   console.log('get-fry-balance handler called');
-  
+
   try {
-    const FRY_TOKEN_ID = 2485314946; // FRY token ID as number
+    const FRY_TOKEN_ID = 2485198745; // fVPN token ID
     
     console.log('Getting FRY token balance...');
     console.log('Token ID:', FRY_TOKEN_ID);
@@ -1292,140 +1307,97 @@ ipcMain.handle('get-fry-balance', async (event, data) => {
   }
 });
 
-// Send test FRY tokens to a wallet address
-ipcMain.handle('send-test-fry', async (event, data) => {
-  console.log('send-test-fry handler called');
-  
+// WireGuard stats handler - returns real interface transfer counters
+ipcMain.handle('get-wg-stats', async () => {
+  console.log('get-wg-stats handler called');
+
   try {
-    const FRY_TOKEN_ID = 2485314946; // FRY token ID as number
-    const TEST_AMOUNT = 10; // 10 FRY tokens for testing
-    
-    console.log('Sending test FRY tokens...');
-    console.log('Token ID:', FRY_TOKEN_ID);
-    console.log('Recipient:', data.recipientAddress);
-    console.log('Amount:', TEST_AMOUNT);
-    console.log('Network: Algorand Mainnet');
-    
-    // Import AlgoKit for token transfer
-    const { AlgorandClient } = await import('@algorandfoundation/algokit-utils');
-    
-    // Configure AlgoKit with explicit settings
-    const algokit = await import('@algorandfoundation/algokit-utils');
-    algokit.Config.configure({ 
-      populateAppCallResources: true,
-      debug: true
-    });
-    
-    // Use explicit Algorand mainnet configuration
-    const algorandClient = AlgorandClient.fromConfig({
-      algodConfig: {
-        server: 'https://mainnet-api.algonode.cloud',
-        port: 443,
-        token: '',
-        network: 'mainnet'
+    const { exec } = require('child_process');
+    const util = require('util');
+    const execAsync = util.promisify(exec);
+
+    // Try to get WireGuard interface stats using 'wg show' command
+    try {
+      const { stdout } = await execAsync('wg show all transfer', { timeout: 5000 });
+      console.log('WireGuard transfer output:', stdout);
+
+      // Parse output: format is typically "interface  sent     received"
+      const lines = stdout.trim().split('\n');
+      let totalSent = 0;
+      let totalReceived = 0;
+
+      for (const line of lines) {
+        const parts = line.trim().split(/\s+/);
+        if (parts.length >= 3) {
+          const sent = parseInt(parts[parts.length - 2], 10) || 0;
+          const received = parseInt(parts[parts.length - 1], 10) || 0;
+          totalSent += sent;
+          totalReceived += received;
+        }
       }
-    });
-    
-    console.log('Algorand client created');
-    
-    // Use a test wallet with known seed phrase (this should have FRY tokens)
-    const testSeedPhrase = 'pull daughter daring crunch umbrella oxygen subject arm exist organ wool lucky glass draw loop taste tuition wait old scout also huge awesome able shine';
-    const senderWallet = algorandClient.account.fromMnemonic(testSeedPhrase);
-    
-    console.log('Sender wallet created');
-    console.log('Sender address:', senderWallet.addr);
-    
-    // Check sender balance
-    const senderAccountInfo = await algorandClient.account.getInformation(senderWallet.addr);
-    const senderBalance = BigInt(senderAccountInfo.account?.amount || 0);
-    
-    console.log('Sender ALGO balance:', Number(senderBalance) / 1000000);
-    console.log('Sender account info:', safeStringify(senderAccountInfo));
-    
-    if (senderBalance < 1000000) { // Less than 1 ALGO
-      return { 
-        success: false, 
-        message: 'Test wallet has insufficient ALGO for transaction fees. Please fund the test wallet first.' 
+
+      console.log('📊 WireGuard stats - Sent:', totalSent, 'Received:', totalReceived);
+      return {
+        success: true,
+        sent: totalSent,
+        received: totalReceived,
+        timestamp: Date.now(),
       };
+    } catch (wgError) {
+      console.warn('⚠️ wg show command failed, trying alternative method:', wgError.message);
+
+      // Fallback: try to get stats from Windows network interfaces
+      try {
+        const { stdout } = await execAsync(
+          "Get-NetAdapterStatistics -Name '*Wireguard*' | ConvertTo-Json",
+          { shell: 'powershell.exe', timeout: 5000 }
+        );
+        const stats = JSON.parse(stdout);
+
+        const totalSent = stats.SentBytes || 0;
+        const totalReceived = stats.ReceivedBytes || 0;
+
+        console.log('📊 PowerShell stats - Sent:', totalSent, 'Received:', totalReceived);
+        return {
+          success: true,
+          sent: totalSent,
+          received: totalReceived,
+          timestamp: Date.now(),
+        };
+      } catch (psError) {
+        console.warn('⚠️ PowerShell stats failed:', psError.message);
+
+        // WireGuard interface not available — report zero throughput (never fabricated).
+        console.log('WireGuard stats unavailable (interface may be down) — reporting zero');
+        return {
+          success: false,
+          sent: 0,
+          received: 0,
+          timestamp: Date.now(),
+          message: 'Could not retrieve WireGuard stats',
+        };
+      }
     }
-    
-    // Check if sender has FRY tokens
-    const hasFryToken = senderAccountInfo.account && 
-                       senderAccountInfo.account.assets && 
-                       senderAccountInfo.account.assets.some(asset => asset.assetId === Number(FRY_TOKEN_ID));
-    
-    if (!hasFryToken) {
-      return { 
-        success: false, 
-        message: 'Test wallet has no FRY tokens to send. Please fund the test wallet with FRY tokens first.' 
-      };
-    }
-    
-    // Get FRY token balance
-    const fryAsset = senderAccountInfo.account.assets.find(asset => asset.assetId === Number(FRY_TOKEN_ID));
-    const fryBalance = fryAsset.amount;
-    
-    console.log('Sender FRY balance:', typeof fryBalance === 'bigint' ? fryBalance.toString() : fryBalance);
-    console.log('FRY asset details:', safeStringify(fryAsset));
-    
-    if (fryBalance < TEST_AMOUNT) {
-      return { 
-        success: false, 
-        message: `Test wallet has insufficient FRY tokens. Has ${typeof fryBalance === 'bigint' ? fryBalance.toString() : fryBalance}, needs ${TEST_AMOUNT}` 
-      };
-    }
-    
-    // Transfer FRY tokens
-    console.log('Initiating asset transfer...');
-    const response = await algorandClient.send.assetTransfer({
-      assetId: Number(FRY_TOKEN_ID),
-      receiver: data.recipientAddress,
-      sender: senderWallet.addr,
-      signer: senderWallet.signer,
-      amount: Number(TEST_AMOUNT)
-    });
-    
-    console.log('Transfer response received:', safeStringify(response));
-    
-    if (response.confirmation) {
-      console.log('FRY transfer successful:', safeStringify(response.confirmation));
-      return { 
-        success: true, 
-        message: `${TEST_AMOUNT} FRY tokens sent successfully!`, 
-        txId: response.confirmation.transactionId 
-      };
-    } else {
-      console.log('FRY transfer failed - no confirmation');
-      return { success: false, message: 'FRY transfer failed - no confirmation received' };
-    }
-    
-  } catch (err) {
-    console.error('Send test FRY error details:', err);
-    console.error('Error stack:', err.stack);
-    
-    let errorMessage = 'Send test FRY failed: ';
-    if (err.message.includes('network')) {
-      errorMessage += 'Network connection error. Please check your internet connection.';
-    } else if (err.message.includes('insufficient')) {
-      errorMessage += 'Insufficient FRY tokens in test wallet.';
-    } else if (err.message.includes('invalid')) {
-      errorMessage += 'Invalid wallet or configuration.';
-    } else {
-      errorMessage += err.message;
-    }
-    
-    return { success: false, message: errorMessage };
+  } catch (error) {
+    console.error('❌ get-wg-stats error:', error);
+    return {
+      success: false,
+      sent: 0,
+      received: 0,
+      timestamp: Date.now(),
+      message: error.message,
+    };
   }
 });
 
 // FRY token opt-in handler (without transfer)
 ipcMain.handle('opt-in-fry', async (event, data) => {
   console.log('opt-in-fry handler called');
-  
+
   try {
-    const FRY_TOKEN_ID = 2485314946; // FRY token ID as number
-    
-    console.log('Opting in to FRY token...');
+    const FRY_TOKEN_ID = 2485198745; // fVPN token ID
+
+    console.log('Opting in to fVPN token...');
     console.log('Token ID:', FRY_TOKEN_ID);
     console.log('Network: Algorand Mainnet');
     

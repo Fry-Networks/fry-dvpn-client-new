@@ -1,8 +1,9 @@
 const { MongoClient } = require('mongodb');
 
-// MongoDB connection string
-const MONGODB_URI = 'mongodb+srv://octalooptech:9gjgV5KyIqUkHFoS@fry-dvpn-cluster0.09sc988.mongodb.net/?retryWrites=true&w=majority&appName=fry-dvpn-Cluster0';
-const DATABASE_NAME = 'fry-dvpn';
+// MongoDB connection string - optional, off by default
+// To enable: set MONGODB_URI environment variable or configure in .env
+const MONGODB_URI = process.env.MONGODB_URI || null;
+const DATABASE_NAME = process.env.DATABASE_NAME || 'fry-dvpn';
 const WALLETS_COLLECTION = 'wallets';
 const PLANS_COLLECTION = 'plans';
 const FRY_TRANSACTIONS_COLLECTION = 'fry_transactions';
@@ -18,13 +19,21 @@ class DatabaseService {
 
   async connect() {
     try {
+      // Check if MongoDB is configured
+      if (!MONGODB_URI) {
+        console.log('⚠️ MongoDB not configured (MONGODB_URI not set)');
+        console.log('💾 Using local in-memory fallback database');
+        console.log('ℹ️  To enable MongoDB, set MONGODB_URI environment variable');
+        this.isLocalFallback = true;
+        return true;
+      }
+
       console.log('🔌 Connecting to MongoDB...');
-      console.log('MongoDB URI:', MONGODB_URI.replace(/\/\/.*@/, '//***:***@')); // Hide credentials in logs
       console.log('Database name:', DATABASE_NAME);
       console.log('Wallets collection:', WALLETS_COLLECTION);
       console.log('Plans collection:', PLANS_COLLECTION);
       console.log('FRY Transactions collection:', FRY_TRANSACTIONS_COLLECTION);
-      
+
       this.client = new MongoClient(MONGODB_URI, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
@@ -43,6 +52,7 @@ class DatabaseService {
       // Test the connection by running a simple command
       await this.db.admin().ping();
       console.log('✅ Database ping successful');
+      this.isLocalFallback = false;
 
       // Create indexes for better performance
       await this.walletsCollection.createIndex({ walletAddress: 1 }, { unique: true });

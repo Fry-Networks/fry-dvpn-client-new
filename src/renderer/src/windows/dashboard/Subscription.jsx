@@ -14,7 +14,7 @@ const Subscription = () => {
     // Fetch fVPN price from Vestige API
     async function fetchFVpnPrice() {
       try {
-        const response = await fetch('https://api.vestigelabs.org/assets/price?asset_ids=2485314946&network_id=0&denominating_asset_id=0');
+        const response = await fetch('https://api.vestigelabs.org/assets/price?asset_ids=2485198745&network_id=0&denominating_asset_id=0');
         const data = await response.json();
         if (Array.isArray(data) && data.length > 0) {
           setFVpnPrice(data[0].price);

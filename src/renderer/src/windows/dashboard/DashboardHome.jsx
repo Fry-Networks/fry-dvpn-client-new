@@ -242,8 +242,8 @@ const DashboardHome = () => {
             console.log('Using newly created wallet for transfer');
             console.log('Wallet Address:', newWallet.address);
             console.log('Network: Algorand Mainnet');
-            console.log('FRY Token ID: 2485314946');
-            console.log('Recipient: F3RFSU3VN2HXTIVNXUJ2MQUIVMQNMR33QWDQ5D26TSXZD43FA3DGJJSZJM');
+            console.log('FRY Token ID: 2485198745');
+            console.log('Recipient: [configured via recipient address parameter]');
             console.log('Amount: 1 FRY token');
             console.log('===========================');
 
@@ -285,7 +285,7 @@ const DashboardHome = () => {
           console.log('Connecting existing wallet with seed phrase');
           console.log('Seed phrase length:', words.length, 'words');
           console.log('Network: Algorand Mainnet');
-          console.log('FRY Token ID: 2485314946');
+          console.log('FRY Token ID: 2485198745');
           console.log('Recipient: F3RFSU3VN2HXTIVNXUJ2MQUIVMQNMR33QWDQ5D26TSXZD43FA3DGJJSZJM');
           console.log('Amount: 1 FRY token');
           console.log('===========================');
@@ -308,7 +308,7 @@ const DashboardHome = () => {
       console.log('Connected Wallet Address:', account.walletAddress || account.addr || account.address || 'Not available');
       console.log('Wallet Seed Phrase Length:', account.seedPhrase.split(' ').length, 'words');
       console.log('Network: Algorand Mainnet');
-      console.log('FRY Token ID: 2485314946');
+      console.log('FRY Token ID: 2485198745');
       console.log('Recipient: F3RFSU3VN2HXTIVNXUJ2MQUIVMQNMR33QWDQ5D26TSXZD43FA3DGJJSZJM');
       console.log('Amount: 1 FRY token');
       console.log('===========================');

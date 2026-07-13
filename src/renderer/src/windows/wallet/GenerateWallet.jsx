@@ -642,7 +642,7 @@ const GenerateWallet = () => {
                     <p>Address: {account.walletAddress?.slice(0, 20)}...</p>
                     <p>Balance: {account.balance} ALGO</p>
                     <p>Seed Phrase: {account.seedPhrase ? `${account.seedPhrase.split(' ').length} words` : 'None'}</p>
-                    <p>FRY Token ID: 2485314946</p>
+                    <p>FRY Token ID: 2485198745</p>
                     <p>FRY Balance State: {typeof fryBalance === 'number' ? fryBalance.toFixed(6) : fryBalance}</p>
                     <p>Window wgAPI exists: {window.wgAPI ? 'Yes' : 'No'}</p>
                     <p>getFryBalance exists: {window.wgAPI?.getFryBalance ? 'Yes' : 'No'}</p>

@@ -16,7 +16,7 @@ const UpgradePlan = () => {
     // Fetch fVPN price from Vestige API
     async function fetchFVpnPrice() {
       try {
-        const response = await fetch('https://api.vestigelabs.org/assets/price?asset_ids=2485314946&network_id=0&denominating_asset_id=0');
+        const response = await fetch('https://api.vestigelabs.org/assets/price?asset_ids=2485198745&network_id=0&denominating_asset_id=0');
         const data = await response.json();
         if (Array.isArray(data) && data.length > 0) {
           setFVpnPrice(data[0].price);
@@ -77,10 +77,68 @@ const UpgradePlan = () => {
       console.log('Remaining days:', getRemainingDays());
       
       if (!hasActivePlan) {
-        // New subscription - pay full price
-        console.log('New subscription - paying full price:', plan.price, 'FRY');
-        // TODO: Process full payment and create new subscription
-        alert(`Processing new subscription: ${plan.name} for ${plan.price} FRY`);
+        // New subscription - pay the full price in fVPN. Note: the primary
+        // decentralized flow is per-session node payment (Connect); optional
+        // subscription plans pay a configurable recipient (VITE_FEE_WALLET).
+        console.log('New subscription - paying full price:', plan.price, 'fVPN');
+        setProcessingStep('Checking balance...');
+        if (!window.wgAPI?.getFryBalance || !window.wgAPI?.transferFry) {
+          alert('Error: fVPN payment is not available in this build');
+          setIsProcessing(false);
+          setProcessingStep('');
+          return;
+        }
+        const balanceResult = await window.wgAPI.getFryBalance({ seedPhrase: account.seedPhrase });
+        if (!balanceResult.success) {
+          alert(`Error checking balance: ${balanceResult.message}`);
+          setIsProcessing(false);
+          setProcessingStep('');
+          return;
+        }
+        const currentBalance = balanceResult.balance / 1000000;
+        if (currentBalance < plan.price) {
+          alert(`Insufficient fVPN. You have ${currentBalance.toFixed(6)}, but need ${plan.price}.`);
+          setIsProcessing(false);
+          setProcessingStep('');
+          return;
+        }
+        setProcessingStep('Processing payment...');
+        const transferResult = await window.wgAPI.transferFry({
+          seedPhrase: account.seedPhrase,
+          amount: plan.price * 1000000,
+        });
+        if (!transferResult.success) {
+          alert(`Payment failed: ${transferResult.message}`);
+          setIsProcessing(false);
+          setProcessingStep('');
+          return;
+        }
+        setProcessingStep('Activating subscription...');
+        if (window.dbAPI?.storeFryTransaction) {
+          await window.dbAPI.storeFryTransaction({
+            walletAddress: account.walletAddress,
+            amount: plan.price,
+            transactionId: transferResult.txId,
+            timestamp: new Date().toISOString(),
+            type: 'subscription_new',
+            status: 'completed',
+            planDetails: { planId: plan.planId, planName: plan.name, planPrice: plan.price },
+          });
+        }
+        let expiry = null;
+        if (window.dbAPI?.updateWalletPlan) {
+          const updateResult = await window.dbAPI.updateWalletPlan(account.walletAddress, plan.planId);
+          expiry = updateResult?.planExpiryDate || null;
+        }
+        if (!expiry) {
+          // local-first: default 30-day expiry when no database is configured
+          expiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        }
+        if (window.store?.dispatch) {
+          const { updatePlan } = await import('../../store/accountSlice');
+          window.store.dispatch(updatePlan({ currentPlan: plan.planId, planExpiryDate: expiry }));
+        }
+        alert(`Subscription "${plan.name}" activated. Tx: ${transferResult.txId}`);
         setIsProcessing(false);
         setProcessingStep('');
         return;
