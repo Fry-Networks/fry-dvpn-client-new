@@ -802,9 +802,17 @@ ipcMain.handle('check-admin-privileges', async () => {
 });
 
 // Handle opening external URLs (for Pera wallet deep links)
+// Only the schemes this app actually uses to reach a wallet are allowed;
+// shell.openExternal on an unvalidated URL is a known Electron footgun
+// (e.g. file:// or other locally-registered protocol handlers).
+const ALLOWED_EXTERNAL_SCHEMES = ['https:', 'pera:', 'algorand:'];
 ipcMain.handle('open-external', async (_, url) => {
   console.log('Opening external URL:', url);
   try {
+    const scheme = new URL(url).protocol;
+    if (!ALLOWED_EXTERNAL_SCHEMES.includes(scheme)) {
+      throw new Error(`refusing to open disallowed URL scheme: ${scheme}`);
+    }
     await shell.openExternal(url);
     return { success: true };
   } catch (error) {
@@ -849,9 +857,9 @@ ipcMain.handle('create-wallet', async () => {
     console.log('Generating new wallet...');
     const wallet = algorandClient.account.generate();
     console.log('New wallet generated successfully');
-    console.log('Wallet object:', wallet);
     console.log('Wallet address:', wallet.addr);
-    console.log('Wallet mnemonic:', wallet.mnemonic);
+    // Do not log wallet.mnemonic (or the raw wallet object, which embeds it) -
+    // it is the account's private key material.
     console.log('Seed phrase length:', wallet.mnemonic ? wallet.mnemonic.split(' ').length : 'undefined', 'words');
     
     // Validate wallet data
@@ -867,7 +875,7 @@ ipcMain.handle('create-wallet', async () => {
       message: 'New wallet created successfully!'
     };
     
-    console.log('Returning wallet result:', result);
+    console.log('Returning wallet result, success:', result.success);
     return result;
     
   } catch (err) {

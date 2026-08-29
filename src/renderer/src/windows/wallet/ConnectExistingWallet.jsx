@@ -92,11 +92,12 @@ const ConnectExistingWallet = () => {
             console.log('🗄️ Checking wallet in database...');
             if (window.dbAPI && window.dbAPI.getWallet) {
                 const dbResult = await window.dbAPI.getWallet(walletAddress);
-                console.log('🗄️ Database result:', dbResult);
+                // Do not log the raw db result/wallet record - it carries the seed phrase.
+                console.log('🗄️ Database result success:', dbResult?.success);
 
                 if (dbResult.success && dbResult.wallet) {
                     const wallet = dbResult.wallet;
-                    console.log('✅ Wallet found in database:', wallet);
+                    console.log('✅ Wallet found in database, address:', wallet.address);
 
                     // Check if wallet has active plan
                     if (wallet.currentPlan && wallet.planExpiryDate) {

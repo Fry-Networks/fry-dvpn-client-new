@@ -45,7 +45,8 @@ const GenerateWallet = () => {
                 )
             ]);
             
-            console.log('Wallet creation result:', result);
+            // Do not log the raw result - it carries the seed phrase.
+            console.log('Wallet creation result success:', result?.success);
             
             if (result.success) {
                 console.log('New wallet created successfully');

@@ -179,12 +179,13 @@ const DashboardHome = () => {
           // Create a new wallet with seed phrase
           console.log('Calling createWallet...');
           const newWallet = await window.wgAPI.createWallet();
-          console.log('createWallet response:', newWallet);
-          
+          // Do not log the raw createWallet response - it carries the seed phrase.
+          console.log('createWallet response success:', newWallet?.success);
+
           if (newWallet.success) {
             console.log('New wallet created successfully');
             console.log('Wallet address:', newWallet.address);
-            console.log('Seed phrase:', newWallet.seedPhrase);
+            // Do not log newWallet.seedPhrase - it is the account's private key material.
             console.log('Seed phrase length:', newWallet.seedPhrase ? newWallet.seedPhrase.split(' ').length : 'undefined', 'words');
             
             // Validate wallet data
